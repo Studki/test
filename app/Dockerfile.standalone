@@ -1,0 +1,22 @@
+FROM python:3.9.16-slim-bullseye as init
+# Set the default shell to bash instead of sh
+SHELL ["/bin/bash", "-c"]
+# Update and upgrade pip
+RUN python -m pip install --upgrade pip
+# Copy the current directory contents into the container at /app
+COPY requirements.txt .
+# Install any needed packages specified in requirements.txt
+RUN --mount=type=cache,target=/root/.cache/ \
+    pip install -r requirements.txt
+# Set the working directory to /app
+WORKDIR /app
+# Copy the current directory contents into the container at /app
+COPY . .
+# Remove the requirements.txt file
+RUN rm requirements.txt
+
+FROM init as standalone
+WORKDIR /app
+COPY --from=init /app/app .
+# Run app.py when the container launches
+CMD ["python", "__main__.py"]
